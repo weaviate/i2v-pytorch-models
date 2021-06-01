@@ -1,0 +1,36 @@
+language: python
+python: 3.9
+env:
+  global:
+  - LOCAL_REPO: img2vec-pytorch
+  - REMOTE_REPO: semitechnologies/img2vec-pytorch
+  - secure: heDG9s1Nc0y13d9+tCh+YMr/hnZBgHpaLanJoW0w6b/kTbW0nSznso4b7kE1SZ8r9woO3c0uWivDUOcawnh5fjx8sLRcz7cCyzmugpefIEBAvqb47P38TszGRhh5zKNBv7kx8AU0Jyi97DKPgcgesTRFVl65kGwLNBmji4oBtacv7K2ztnhj4YRN1tgHKFZC8M4WyLkPidQdM1b4kyk2z/XLvyYAMsYnGtu2yVm4puN7AQFLJuWPyd4XAgm9CANGtsMH/qlocShVydJYDh1uDVp0fN08ep62N3Ma+qxC85er3rrn6nx+M2JF96YEahtlEMDXJsZfYx733jzJR6b5lEBJSgKZwcV48vUpKmgBnGrPuvRhm5xE6K7CFqWj1TIvTZQmSpsPDyHGo59Xj7CysmzV8YSxBTjmA1rqPLQOoIX0TVnha5X6FvXI+wbhyEVYy3100r4R3RYa4gifYa9DYSyqUy8QuwT/CVo/Ufr1rTyyXGEzTgJRWH888nPMlQXZBbtIOzDs1VAdRlzYhNqBORK0vw1fetpJOjX40HEMSzcCw5rbOS0JP1P5Mjs95i7Lr758FRRw2jpURC6xHSt2IOnVh685DBq8+GK3j/lx0UH5EVhHL0m4RZIgLFrCS092wHmLHzvLsQKgdewU4WMYK2lOiePgFjTfnpKJ3C/EP/w=
+  - secure: FKBapYd69GBO37KSM71IPuZlHzlTE7cu196en69QobjSNvVGfJWdooyvNoUkVmHKQ4VeeZhzs/XdbRyGluNRSpOPoAjEEjqIRElfumhsn5/kLCY29MDed4m8RKv8jY+80L2CTjSGQ7Yq1VxBOEQ2YdJzhF/wgSzN9n+mI3R7h5KHSm99hp5JtW2LsZip1ohzbuLLwWJhK4XWYqKU8l0g4kZgZoivnkweo/+QTI60NoXSSPcOWpPIfGXO76ORDntmQWtfTef6uUAbG+QHqi7JamabomJpbe8/TTUFqnxDtNFox1QLNE/kQsG1AcpuOE85WNSJ22dprWY9UFdbQVpsVOP+AFHXWDRT4IZJ/16lrx/Y5m+0BgnhM8dU5+HOCiQrpDNkH2InU4y18U+1kb8PhEn23duc3VX/wMK1l39LwykYIDFnVhFIBxY+QNh/EcR2fRe2O8os+zazA0kld2V2BizaB8Ke2QMkLrs0/9kBmn8pgr00HEfEyYyGApb0JTW/NnxVD2aIzC5q0LwoJgpfI/MITAv9nMvBxiVA3UAjNmig4bLyjCbCvRuMEgqj4a+1P519zGh6LuY2W2nUuZudsmB01AjJjDvlZDhJj3f57s+y0052J4d+kEl4I/zrzilFJGYmWASlMRrPPKOCG4wEkJ/tsdn36fX1sIN3knomK10=
+install: echo skipping default travis install script
+jobs:
+  include:
+    # always run test, etc. for this model
+    - env:
+        MODEL_NAME: resnet50
+      stage: buildanddeploy
+
+    - name: Build the base for custom images
+      script: GIT_BRANCH=$TRAVIS_BRANCH GIT_TAG=$TRAVIS_TAG GIT_PULL_REQUEST=$TRAVIS_PULL_REQUEST cicd/build_custom_base.sh
+      stage: postbuild
+
+script:
+
+- |-
+  # Login early, so that all pull commands run with authentication (faster)
+  echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+
+- cicd/build.sh || travis_terminate 1
+
+- cicd/test.sh || travis_terminate 1
+
+- |-
+  # Push docker image
+  GIT_BRANCH=$TRAVIS_BRANCH \
+  GIT_TAG=$TRAVIS_TAG \
+  GIT_PULL_REQUEST=$TRAVIS_PULL_REQUEST \
+  cicd/docker_push.sh || travis_terminate 1

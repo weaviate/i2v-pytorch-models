@@ -14,10 +14,6 @@ jobs:
         MODEL_NAME: resnet50
       stage: buildanddeploy
 
-    - name: Build the base for custom images
-      script: GIT_BRANCH=$TRAVIS_BRANCH GIT_TAG=$TRAVIS_TAG GIT_PULL_REQUEST=$TRAVIS_PULL_REQUEST cicd/build_custom_base.sh
-      stage: postbuild
-
 script:
 
 - cicd/build.sh || travis_terminate 1

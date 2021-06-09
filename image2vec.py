@@ -6,8 +6,8 @@ from PIL import Image
 
 class Img2VecPytorch(object):
 
-  def __init__(self, cuda=False):
-    self.device = torch.device("cuda" if cuda else "cpu")
+  def __init__(self, cuda_support, cuda_core):
+    self.device = torch.device(cuda_core if cuda_support else "cpu")
 
     self.model = models.resnet50(pretrained=True)
     self.layer_output_size = 2048

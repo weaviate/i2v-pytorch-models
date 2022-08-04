@@ -1,7 +1,9 @@
 # pytorch image to vector (for Weaviate)
 The inference container for the img2vec module
 
-This is a temporary readme. TODO
+## Documentation
+
+Documentation for this module can be found [here](https://weaviate.io/developers/weaviate/current/retriever-vectorizer-modules/img2vec-neural.html).
 
 ## Build Docker container
 

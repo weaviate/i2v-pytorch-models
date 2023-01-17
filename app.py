@@ -36,6 +36,7 @@ def live_and_ready(response: Response):
 
 
 @app.post("/vectors")
+@app.post("/vectors/")
 def read_item(item: VectorImagePayload, response: Response):
 	try:
 		vector = imgVec.vectorize(item.id, item.image)

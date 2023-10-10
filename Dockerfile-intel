@@ -1,0 +1,20 @@
+FROM intel/intel-extension-for-pytorch:xpu-flex-2.0.110-xpu
+
+USER root
+RUN apt-get update
+RUN pip install --upgrade pip setuptools
+
+WORKDIR /app
+COPY requirements-intel.txt .
+
+RUN pip3 install -r requirements-intel.txt --timeout 1000
+
+USER user
+ARG MODEL_NAME
+COPY download_model.py .
+RUN ./download_model.py
+
+COPY . .
+
+ENTRYPOINT ["/bin/sh", "-c"]
+CMD ["uvicorn app:app --host 0.0.0.0 --port 8080"]

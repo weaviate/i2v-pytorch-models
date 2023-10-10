@@ -6,16 +6,20 @@ from PIL import Image
 
 class Img2VecPytorch(object):
 
-  def __init__(self, cuda_support, cuda_core):
-    self.device = torch.device(cuda_core if cuda_support else "cpu")
+  def __init__(self, cuda_support, intel_support, device_core):
+    self.device = torch.device(device_core if cuda_support or intel_support else "cpu")
 
     self.model = models.resnet50(pretrained=True)
+    self.model.eval()
     self.layer_output_size = 2048
     self.extraction_layer = self.model._modules.get('avgpool')
 
-    self.model = self.model.to(self.device)
-
-    self.model.eval()
+    if intel_support and device_core == 'xpu':
+      import intel_extension_for_pytorch as ipex
+      self.model = self.model.to(self.device)
+      self.model = ipex.optimize(self.model)
+    else:
+      self.model = self.model.to(self.device)
 
     self.scaler = transforms.Resize((224, 224))
     self.normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],

@@ -14,20 +14,27 @@ def startup_event():
 	global imgVec
 
 	cuda_env = os.getenv("ENABLE_CUDA")
+	intel_gpu_env = os.getenv("ENABLE_INTEL_GPU")
 	cuda_support = False
-	cuda_core = ""
+	intel_support = False
+	device_core = ""
 
 	if cuda_env is not None and cuda_env == "true" or cuda_env == "1":
 		cuda_support = True
-		cuda_core = os.getenv("CUDA_CORE")
-		if cuda_core is None or cuda_core == "":
-				cuda_core = "cuda:0"
-		logger.info(f"CUDA_CORE set to {cuda_core}")
+		device_core = os.getenv("CUDA_CORE")
+		if device_core is None or device_core == "":
+				device_core = "cuda:0"
+		logger.info(f"CUDA_CORE set to {device_core}")
+	elif intel_gpu_env is not None and intel_gpu_env == "true" or intel_gpu_env == "1":
+		intel_support = True
+		device_core = os.getenv("INTEL_GPU_CORE")
+		if device_core is None or device_core == "":
+				device_core = "xpu"
+		logger.info(f"INTEL_CORE set to {device_core}")
 	else:
 		logger.info("Running on CPU")
 
-	imgVec = ImageVectorizer(cuda_support, cuda_core)
-
+	imgVec = ImageVectorizer(cuda_support, intel_support, device_core)
 
 @app.get("/.well-known/live", response_class=Response)
 @app.get("/.well-known/ready", response_class=Response)
